@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 def summarize(df, include_perc=True, sort=True):
     """
     Generate a summary DataFrame with descriptive statistics for each column in the input DataFrame.
