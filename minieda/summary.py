@@ -13,6 +13,10 @@ def summarize(df, include_perc=True, sort=True):
     Returns:
         pd.DataFrame: A summary table with one row per input column and one column per statistic.
     """
+
+    if df.shape[1] == 0:
+        raise ValueError("summarize() requires a DataFrame with at least one column.")
+
     numeric_cols = df.select_dtypes(include='number').columns
     non_bool_and_not_timedelta = [
         col for col in numeric_cols
