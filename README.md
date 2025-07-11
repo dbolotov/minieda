@@ -28,20 +28,25 @@ print(summary)
 import pandas as pd
 from minieda import summarize
 
+pd.set_option("display.width", 1000)
+pd.set_option("display.max_columns", None)
+
 df = pd.DataFrame({
     "var1": [25, 30, 22, 35, 28],
-    "var2": [50000, 60000, 52000, 75000, 58000],
-    "var3": ["A", "B", "C", "A", "B"]
+    "var2": [True, False, True, True, False],
+    "var3": ["A", "B", "C", "A", "B"],
+    "var4": pd.date_range("2023-01-01", periods=5, freq="D"),
+    "var5": pd.Series(["low", "medium", "high", "low", "medium"], dtype="category"),
 })
-
-print(summarize(df))
 ```
 
 ```
-       dtype  count  unique  unique_perc  missing  missing_perc  zero  zero_perc top freq     mean      std      min      50%      max  skew
-var1   int64      5       5        100.0        0           0.0     0        0.0              28.0     4.95     22.0     28.0     35.0  0.37
-var2   int64      5       5        100.0        0           0.0     0        0.0           59000.0  9848.86  50000.0  58000.0  75000.0  1.32
-var3  object      5       3         60.0        0           0.0     0        0.0   A    2                                                   
+               dtype  count  unique  unique_perc  missing  missing_perc  zero  zero_perc   top freq  mean   std   min   50%   max  skew
+var1           int64      5       5        100.0        0           0.0     0        0.0             28.0  4.95  22.0  28.0  35.0  0.37
+var2            bool      5       2         40.0        0           0.0     2       40.0  True    3                                    
+var3          object      5       3         60.0        0           0.0     0        0.0     A    2                                    
+var4  datetime64[ns]      5       5        100.0        0           0.0     0        0.0                                               
+var5        category      5       3         60.0        0           0.0     0        0.0   low    2                                                                               
 
 ```
 
