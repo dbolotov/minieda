@@ -4,15 +4,13 @@ A minimalist Python package for exploratory data analysis with pandas.
 
 `summarize()`: One-line summary of any DataFrame.
 
-## Installation
-
-Install directly from GitHub:
+### Install from GitHub
 
 ```bash
 pip install git+https://github.com/dbolotov/minieda.git
 ```
 
-## Usage
+### Usage
 
 ```python
 import pandas as pd
@@ -23,7 +21,7 @@ summary = summarize(df)
 print(summary)
 ```
 
-## Example Output
+### Example Output
 ```python
 import pandas as pd
 from minieda import summarize
@@ -39,19 +37,19 @@ df = pd.DataFrame({
     "var5": pd.Series(["low", "medium", "high", "low", "medium"], dtype="category"),
 })
 ```
-
+Output:
 ```
                dtype  count  unique  unique_perc  missing  missing_perc  zero  zero_perc   top freq  mean   std   min   50%   max  skew
 var1           int64      5       5        100.0        0           0.0     0        0.0             28.0  4.95  22.0  28.0  35.0  0.37
 var2            bool      5       2         40.0        0           0.0     2       40.0  True    3                                    
 var3          object      5       3         60.0        0           0.0     0        0.0     A    2                                    
 var4  datetime64[ns]      5       5        100.0        0           0.0     0        0.0                                               
-var5        category      5       3         60.0        0           0.0     0        0.0   low    2                                                                               
-
+var5        category      5       3         60.0        0           0.0     0        0.0   low    2                                                                              
 ```
 
-## Requirements
-
-- Python ≥ 3.8  
-- pandas ≥ 2.0  
-- numpy ≥ 1.21  
+### Requirements
+```
+Python ≥ 3.8  
+pandas ≥ 2.0  
+numpy ≥ 1.21  
+```
