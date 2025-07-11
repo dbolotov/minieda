@@ -1,6 +1,6 @@
 # minieda
 
-A minimalist utility for exploratory data analysis in Python using pandas DataFrames.
+A minimalist Python package for exploratory data analysis with pandas.
 
 `summarize()`: One-line summary of any DataFrame.
 
