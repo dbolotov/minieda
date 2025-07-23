@@ -166,8 +166,8 @@ def test_mean_is_rounded(summary_result):
     if "mean" in summary_result.columns:
         for val in summary_result["mean"]:
             if isinstance(val, float):
-                # Accept 1 or 2 decimal places max
-                assert len(str(val).split(".")[1]) <= 2
+                rounded = round(val, 2)
+                assert abs(val - rounded) < 0.01
 
 # -------------------------------
 # No Side Effects
@@ -182,10 +182,15 @@ def test_input_dataframe_unchanged(df_test):
 # Empty or Unusual Inputs
 # -------------------------------
 
-def test_empty_dataframe_raises_error():
-    df = pd.DataFrame()
-    with pytest.raises(ValueError, match=r"summarize\(\) requires a DataFrame with at least one column\."):
-        summarize(df)
+def test_empty_input_raises_error():
+    empty_df = pd.DataFrame()
+    empty_series = pd.Series(dtype=float)
+
+    with pytest.raises(ValueError, match=r"summarize\(\) requires a non-empty Series or DataFrame with at least one column\."):
+        summarize(empty_df)
+
+    with pytest.raises(ValueError, match=r"summarize\(\) requires a non-empty Series or DataFrame with at least one column\."):
+        summarize(empty_series)
 
 def test_single_column_dataframe():
     df = pd.DataFrame({"only_col": [1, 2, 3]})
@@ -198,6 +203,24 @@ def test_all_nan_column():
     result = summarize(df)
     assert result.loc["nan_col", "missing"] == 3
     assert result.loc["nan_col", "missing_perc"] == 100.0
+
+# -------------------------
+# Test Series
+# -------------------------
+
+def test_summarize_series_numeric():
+    s = pd.Series([1, 2, 3, 4], name="my_series")
+    result = summarize(s)
+    assert result.shape[0] == 1
+    assert result.index[0] == "my_series"
+    assert result.loc["my_series", "mean"] == 2.5
+
+@pytest.mark.filterwarnings("ignore:.*Downcasting behavior in `replace` is deprecated.*")
+def test_summarize_series_string():
+    s = pd.Series(["a", "b", "a", "c"], name="letters")
+    result = summarize(s)
+    assert result.loc["letters", "unique"] == 3
+    assert result.loc["letters", "top"] == "a"
 
 # -------------------------
 # summarize_ts
@@ -253,7 +276,7 @@ def test_dataframe_with_no_timestamps_raises():
         summarize_ts(df)
 
 def test_invalid_input_type_raises():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="Input must be a pandas Series or DataFrame."):
         summarize_ts(["2023-01-01", "2023-01-02"])
 
 # -------------------------
@@ -309,3 +332,20 @@ def test_series_with_no_name():
     s.name = None
     result = summarize_ts(s)
     assert result.index[0] == "ts"
+
+# -------------------------
+# Reject Empty Series
+# -------------------------
+def test_empty_series_raises_error():
+    s = pd.Series([], dtype='datetime64[ns]')
+    with pytest.raises(ValueError, match="summarize_ts\\(\\) requires a non-empty Series or DataFrame."):
+        summarize_ts(s)
+
+
+# -------------------------
+# Reject Empty DataFrame
+# -------------------------
+def test_empty_dataframe_raises_error():
+    df = pd.DataFrame()
+    with pytest.raises(ValueError, match="summarize_ts\\(\\) requires a non-empty Series or DataFrame."):
+        summarize_ts(df)
