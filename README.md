@@ -1,13 +1,14 @@
 # minieda
 
-A minimalist Python package for exploratory data analysis with pandas. It currently contains one function:
+A minimalist Python package for exploratory data analysis with pandas. It currently contains two functions:
 
-`summarize()`: an expanded version of pandas' `describe()`, produces a table summary of a pandas DataFrame. Includes data types, missing values, zero counts, uniqueness, distribution stats, and skew.
+`summarize()`: an expanded version of pandas' `describe()`. Produces a table summary of a pandas DataFrame, including data types, missing values, zero counts, uniqueness, distribution stats, and skew.
 
+`summarize_ts()`: summarizes one or more datetime columns in a Series or DataFrame. Ignores non-timestamp columns. Includes min/max, range, missing values, uniqueness, and whether the data is sorted.
 
 ### Why use this?
 
-For quick insights into your DataFrame structure without writing verbose code.
+For quick insights into your data during exploratory analysis.
 
 ### Install from GitHub
 
@@ -19,14 +20,18 @@ pip install git+https://github.com/dbolotov/minieda.git
 
 ```python
 import pandas as pd
-from minieda import summarize
+from minieda import summarize, summarize_ts
 
 df = pd.read_csv("your_dataset.csv")
+
 summary = summarize(df, include_perc=True, sort=True)
+summary_ts = summarize_ts(df, include_perc=True)
+
 print(summary)
+print(summary_ts)
 ```
 
-### Example
+### Example - summarize
 ```python
 import pandas as pd
 from minieda import summarize
@@ -54,6 +59,31 @@ var2            bool      5       2         40.0        0           0.0     2   
 var3          object      5       3         60.0        0           0.0     0        0.0     A    2                                    
 var4  datetime64[ns]      5       5        100.0        0           0.0     0        0.0                                               
 var5        category      5       3         60.0        0           0.0     0        0.0   low    2                                                                              
+```
+
+### Example: summarize_ts
+```python
+import pandas as pd
+from minieda import summarize_ts
+
+pd.set_option("display.width", 1000)
+pd.set_option("display.max_columns", None)
+
+df = pd.DataFrame({
+    "ts1": pd.date_range("2023-01-01", periods=5, freq="D"),
+    "ts2": pd.to_datetime(["2023-01-01", "2023-01-03", None, "2023-01-05", "2020-01-04", ]),
+    "val": [10, 20, 30, 40, 50],
+})
+
+summary = summarize_ts(df)
+print(summary)
+```
+
+Output:
+```
+              dtype        min        max               range  unique  unique_perc  missing  missing_perc  is_sorted
+ts1  datetime64[ns] 2023-01-01 2023-01-05     4 days 00:00:00       5        100.0        0           0.0       True
+ts2  datetime64[ns] 2020-01-04 2023-01-05  1097 days 00:00:00       4         80.0        1          20.0      False
 ```
 
 ### Requirements

@@ -3,12 +3,12 @@ import pandas as pd
 
 def summarize(df, include_perc=True, sort=True):
     """
-    Generate a summary DataFrame with descriptive statistics for each column in the input DataFrame.
+    Generate a summary DataFrame with descriptive statistics for each column in the input Pandas DataFrame.
 
     Parameters:
-        df (pd.DataFrame): The Pandas DataFrame to summarize.
-        include_perc (bool, default=True): Whether to include percentage-based columns in the output.
-        sort (bool, default=True): Whether to sort rows so that numeric columns appear first.
+        df (pd.DataFrame): Pandas DataFrame.
+        include_perc (bool, default=True): Include percentage-based columns in the output.
+        sort (bool, default=True): Sort rows so that numeric columns appear first.
 
     Returns:
         pd.DataFrame: A summary table with one row per input column and one column per statistic.
@@ -71,3 +71,57 @@ def summarize(df, include_perc=True, sort=True):
                        'top', 'freq', 'mean', 'std', 'min', '50%', 'max', 'skew']
     final_columns = [col for col in col_order if col in desc.columns]
     return desc[final_columns]
+
+
+def summarize_ts(data, include_perc=True):
+    """
+    Summarize timestamp columns in a Pandas Series or DataFrame.
+
+    Parameters:
+        data (pd.Series or pd.DataFrame): A datetime Series or a DataFrame containing one or more datetime columns.
+        include_perc (bool, default=True): Include percentage-based columns in the output.
+
+    Returns:
+        pd.DataFrame: One row per timestamp column with summary statistics.
+    """
+    if isinstance(data, pd.Series):
+        if not pd.api.types.is_datetime64_any_dtype(data):
+            raise ValueError("Input Series must be a datetime dtype.")
+        ts_cols = [data.name or "ts"]
+        ts_data = {ts_cols[0]: data}
+    elif isinstance(data, pd.DataFrame):
+        ts_cols = [col for col in data.columns if pd.api.types.is_datetime64_any_dtype(data[col])]
+        if not ts_cols:
+            raise ValueError("No timestamp columns found in the input DataFrame.")
+        ts_data = {col: data[col] for col in ts_cols}
+    else:
+        raise TypeError("Input must be a pandas Series or DataFrame.")
+
+    n_rows = len(data)
+
+    results = []
+    for col, series in ts_data.items():
+        s = series.dropna()
+        is_sorted = s.is_monotonic_increasing
+        row = {
+            "dtype": series.dtype,
+            "min": s.min(),
+            "max": s.max(),
+            "range": str(s.max() - s.min()) if not s.empty else "",
+            "unique": s.nunique()
+        }
+
+        if include_perc:
+            row["unique_perc"] = round((s.nunique() / n_rows) * 100, 2)
+
+        row["missing"] = series.isna().sum()
+
+        if include_perc:
+            row["missing_perc"] = round((series.isna().mean()) * 100, 2)
+
+        row["is_sorted"] = is_sorted
+
+        results.append((col, row))
+
+    df_result = pd.DataFrame.from_dict(dict(results), orient="index")
+    return df_result.replace({np.nan: ""})
