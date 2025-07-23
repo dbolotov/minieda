@@ -1,8 +1,13 @@
 # minieda
 
-A minimalist Python package for exploratory data analysis with pandas.
+A minimalist Python package for exploratory data analysis with pandas. It currently contains one function:
 
-`summarize()`: One-line summary of any DataFrame.
+`summarize()`: an expanded version of pandas' `describe()`, produces a table summary of a pandas DataFrame. Includes data types, missing values, zero counts, uniqueness, distribution stats, and skew.
+
+
+### Why use this?
+
+For quick insights into your DataFrame structure without writing verbose code.
 
 ### Install from GitHub
 
@@ -17,11 +22,11 @@ import pandas as pd
 from minieda import summarize
 
 df = pd.read_csv("your_dataset.csv")
-summary = summarize(df)
+summary = summarize(df, include_perc=True, sort=True)
 print(summary)
 ```
 
-### Example Output
+### Example
 ```python
 import pandas as pd
 from minieda import summarize
@@ -36,7 +41,11 @@ df = pd.DataFrame({
     "var4": pd.date_range("2023-01-01", periods=5, freq="D"),
     "var5": pd.Series(["low", "medium", "high", "low", "medium"], dtype="category"),
 })
+
+summary = summarize(df, include_perc=True, sort=True)
+print(summary)
 ```
+
 Output:
 ```
                dtype  count  unique  unique_perc  missing  missing_perc  zero  zero_perc   top freq  mean   std   min   50%   max  skew
