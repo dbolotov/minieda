@@ -16,21 +16,6 @@ For quick insights into your data during exploratory analysis.
 pip install git+https://github.com/dbolotov/minieda.git
 ```
 
-### Usage
-
-```python
-import pandas as pd
-from minieda import summarize, summarize_ts
-
-df = pd.read_csv("your_dataset.csv")
-
-summary = summarize(df, include_perc=True, sort=True)
-summary_ts = summarize_ts(df, include_perc=True)
-
-print(summary)
-print(summary_ts)
-```
-
 ### Example - summarize
 ```python
 import pandas as pd
