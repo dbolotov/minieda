@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 
-def summarize(df, include_perc=True, sort=True):
+def summarize(data, include_perc=True, sort=True):
     """
-    Generate a summary DataFrame with descriptive statistics for each column in the input Pandas DataFrame.
+    Generate a summary DataFrame with descriptive statistics for a Pandas Series or DataFrame.
 
     Parameters:
-        df (pd.DataFrame): Pandas DataFrame.
+        data (pd.Series or pd.DataFrame): Pandas Series or DataFrame.
         include_perc (bool, default=True): Include percentage-based columns in the output.
         sort (bool, default=True): Sort rows so that numeric columns appear first.
 
@@ -14,33 +14,40 @@ def summarize(df, include_perc=True, sort=True):
         pd.DataFrame: A summary table with one row per input column and one column per statistic.
     """
 
-    if df.shape[1] == 0:
-        raise ValueError("summarize() requires a DataFrame with at least one column.")
+    if not isinstance(data, (pd.Series, pd.DataFrame)):
+        raise TypeError("Input must be a pandas Series or DataFrame.")
 
-    numeric_cols = df.select_dtypes(include='number').columns
+    if isinstance(data, pd.Series):
+        data = data.to_frame(name=data.name or "series")
+
+    if data.shape[1] == 0 or data.empty:
+        raise ValueError("summarize() requires a non-empty Series or DataFrame with at least one column.")
+
+
+    numeric_cols = data.select_dtypes(include='number').columns
     non_bool_and_not_timedelta = [
         col for col in numeric_cols
-        if not pd.api.types.is_bool_dtype(df[col])
-        and not pd.api.types.is_timedelta64_dtype(df[col])
+        if not pd.api.types.is_bool_dtype(data[col])
+        and not pd.api.types.is_timedelta64_dtype(data[col])
     ]
     
     # Use pandas describe
-    desc = df.describe(include='all').T.copy()
+    desc = data.describe(include='all').T.copy()
 
     # Add column-level summaries
-    desc['missing'] = df.isnull().sum()
-    desc['missing_perc'] = (df.isnull().mean() * 100)
-    desc['unique'] = df.nunique()
-    desc['unique_perc'] = (desc['unique'] / len(df) * 100)
-    desc['dtype'] = df.dtypes
-    desc['zero'] = (df == 0).sum()
-    desc['zero_perc'] = ((df == 0).mean() * 100)
-    desc['skew'] = df[non_bool_and_not_timedelta].skew()
+    desc['missing'] = data.isnull().sum()
+    desc['missing_perc'] = (data.isnull().mean() * 100)
+    desc['unique'] = data.nunique()
+    desc['unique_perc'] = (desc['unique'] / len(data) * 100)
+    desc['dtype'] = data.dtypes
+    desc['zero'] = (data == 0).sum()
+    desc['zero_perc'] = ((data == 0).mean() * 100)
+    desc['skew'] = data[non_bool_and_not_timedelta].skew()
 
     # Round numeric summary cols to 2 decimal places
     desc = desc.assign(**{
         col: pd.to_numeric(desc[col], errors='coerce').round(2)
-        for col in ['mean', 'median', 'std', 'min', '50%', 'max',
+        for col in ['mean', 'std', 'min', '50%', 'max',
                     'missing_perc', 'unique_perc', 'skew', 'zero_perc']
         if col in desc.columns
     })
@@ -58,9 +65,10 @@ def summarize(df, include_perc=True, sort=True):
     # Replace any remaining NaNs with empty string for clean display
     desc.replace({np.nan: ""}, inplace=True)
 
+
     if sort:
         # Sort: continuous features first, categorical last
-        desc['column_type'] = ['numeric' if pd.api.types.is_numeric_dtype(t) else 'categorical' for t in df.dtypes]
+        desc['column_type'] = ['numeric' if pd.api.types.is_numeric_dtype(t) else 'categorical' for t in data.dtypes]
         desc = desc.sort_values(by='column_type', ascending=False)
     
     if include_perc:
@@ -82,8 +90,16 @@ def summarize_ts(data, include_perc=True):
         include_perc (bool, default=True): Include percentage-based columns in the output.
 
     Returns:
-        pd.DataFrame: One row per timestamp column with summary statistics.
+        pd.DataFrame: A summary table with one row per input column and one column per statistic.
     """
+
+    if not isinstance(data, (pd.Series, pd.DataFrame)):
+        raise TypeError("Input must be a pandas Series or DataFrame.")
+
+    if data.empty:
+        raise ValueError("summarize_ts() requires a non-empty Series or DataFrame.")
+
+
     if isinstance(data, pd.Series):
         if not pd.api.types.is_datetime64_any_dtype(data):
             raise ValueError("Input Series must be a datetime dtype.")

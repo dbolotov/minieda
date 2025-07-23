@@ -2,9 +2,9 @@
 
 A minimalist Python package for exploratory data analysis with pandas. It currently contains two functions:
 
-`summarize()`: an expanded version of pandas' `describe()`. Produces a table summary of a pandas DataFrame, including data types, missing values, zero counts, uniqueness, distribution stats, and skew.
+`summarize()`: an expanded version of pandas' `describe()`. Produces a table summary of a pandas Series or DataFrame, including data types, missing values, zero counts, uniqueness, distribution stats, and skew.
 
-`summarize_ts()`: summarizes one or more datetime columns in a Series or DataFrame. Ignores non-timestamp columns. Includes min/max, range, missing values, uniqueness, and whether the data is sorted.
+`summarize_ts()`: summarizes one or more datetime columns in a pandas Series or DataFrame. Ignores non-timestamp columns. Includes min/max, range, missing values, uniqueness, and whether the data is sorted.
 
 ### Why use this?
 
