@@ -141,3 +141,63 @@ def summarize_ts(data, include_perc=True):
 
     df_result = pd.DataFrame.from_dict(dict(results), orient="index")
     return df_result.replace({np.nan: ""})
+
+def summarize_missing(data, include_perc=True):
+    """
+    Summarize missing values in a Pandas DataFrame.
+
+    Parameters:
+        data (pd.DataFrame): The DataFrame to analyze.
+        include_perc (bool, default=True): Include percentage-based columns in the output.
+
+    Returns:
+        pd.DataFrame: A one-column DataFrame with missing data stats.
+    """
+    if not isinstance(data, pd.DataFrame):
+        raise TypeError("Input must be a pandas DataFrame.")
+
+    if data.shape[1] == 0 or data.empty:
+        raise ValueError("summarize_missing() requires a non-empty DataFrame with at least one column.")
+
+    n_rows = len(data)
+    n_cols = data.shape[1]
+
+    rows_w_missing = data.isnull().any(axis=1).sum()
+    cols_w_missing = data.isnull().any(axis=0).sum()
+    tot_missing = data.isnull().sum().sum()
+
+    # Prepare raw dictionary
+    result = {
+        "n_rows": n_rows,
+        "n_cols": n_cols,
+        "rows_w_missing": rows_w_missing,
+        "cols_w_missing": cols_w_missing,
+        "tot_missing": tot_missing,
+    }
+    if include_perc:
+        result.update({
+            "rows_w_missing_perc": round((rows_w_missing / n_rows) * 100, 2),
+            "cols_w_missing_perc": round((cols_w_missing / n_cols) * 100, 2),
+            "tot_missing_perc": round((tot_missing / (n_rows * n_cols)) * 100, 2),
+        })
+
+    # Build DataFrame
+    df = pd.DataFrame(result, index=[0])
+
+    # Define row order
+    row_order = [
+        "n_rows",
+        "n_cols",
+        "rows_w_missing",
+        "rows_w_missing_perc" if include_perc else None,
+        "cols_w_missing",
+        "cols_w_missing_perc" if include_perc else None,
+        "tot_missing",
+        "tot_missing_perc" if include_perc else None,
+    ]
+
+    # Remove None entries if include_perc is False
+    row_order = [r for r in row_order if r is not None]
+
+    result_series = pd.Series(result, name="summary").reindex(row_order)
+    return result_series.to_frame()

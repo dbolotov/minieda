@@ -6,6 +6,8 @@ A minimalist Python package for exploratory data analysis with pandas. It curren
 
 `summarize_ts()`: summarizes one or more datetime columns in a pandas Series or DataFrame. Ignores non-timestamp columns. Includes min/max, range, missing values, uniqueness, and whether the data is sorted.
 
+`summarize_missing()`: summarizes missing data in a Pandas DataFrame, including total counts and percentages.
+
 ### Why use this?
 
 For quick insights into your data during exploratory analysis.
@@ -70,6 +72,41 @@ Output:
 ts1  datetime64[ns] 2023-01-01 2023-01-05     4 days 00:00:00       5        100.0        0           0.0       True
 ts2  datetime64[ns] 2020-01-04 2023-01-05  1097 days 00:00:00       4         80.0        1          20.0      False
 ```
+
+### Example: summarize_missing
+
+```python
+import pandas as pd
+from minieda import summarize_missing
+
+pd.set_option("display.width", 1000)
+pd.set_option("display.max_columns", None)
+
+df = pd.DataFrame({
+    "col1": [1, None, 3, None, 5],
+    "col2": [None, 2, 3, 4, 5],
+    "col3": [1, 2, 3, 4, 5],
+    "col4": [None, None, None, None, None],
+})
+
+result = summarize_missing(df)
+print(result)
+```
+
+Output:
+```
+                     summary
+n_rows                   5.0
+n_cols                   4.0
+rows_w_missing           5.0
+rows_w_missing_perc    100.0
+cols_w_missing           3.0
+cols_w_missing_perc     75.0
+tot_missing              8.0
+tot_missing_perc        40.0
+```
+
+
 
 ### Requirements
 ```
