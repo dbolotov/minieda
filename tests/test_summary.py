@@ -62,8 +62,8 @@ def test_index_matches_input_columns(summary_result, df_test):
 
 def test_expected_columns_present(summary_result):
     expected_cols = [
-        'dtype', 'count', 'unique', 'unique_perc', 'missing', 'missing_perc',
-        'zero', 'zero_perc', 'mean', 'std', 'min', '50%', 'max', 'skew'
+        'dtype', 'count', 'unique', 'unique_pct', 'missing', 'missing_pct',
+        'zero', 'zero_pct', 'mean', 'std', 'min', '50%', 'max', 'skew'
     ]
     for col in expected_cols:
         assert col in summary_result.columns
@@ -89,7 +89,7 @@ def test_numeric_column_behavior(summary_result):
     assert isinstance(num_col["mean"], float)
     assert isinstance(num_col["std"], float)
     assert num_col["zero"] == 0
-    assert num_col["zero_perc"] == 0.0
+    assert num_col["zero_pct"] == 0.0
     assert isinstance(num_col["skew"], float)
 
 # Boolean column
@@ -130,15 +130,15 @@ def test_missing_value_summary():
     })
     result = summarize(df)
     assert result.loc["col1", "missing"] == 1
-    assert result.loc["col1", "missing_perc"] == 20.0
+    assert result.loc["col1", "missing_pct"] == 20.0
 
 # -------------------------------
-# Percent Control
+# pctent Control
 # -------------------------------
 
-def test_exclude_percentage_columns(df_test):
-    result = summarize(df_test, include_perc=False)
-    for col in ["missing_perc", "unique_perc", "zero_perc"]:
+def test_exclude_pctentage_columns(df_test):
+    result = summarize(df_test, include_pct=False)
+    for col in ["missing_pct", "unique_pct", "zero_pct"]:
         assert col not in result.columns
 
 # -------------------------------
@@ -154,7 +154,7 @@ def test_no_sort_preserves_column_order(df_test):
 # -------------------------------
 
 def test_numeric_output_types(summary_result):
-    numeric_cols = ["mean", "std", "min", "max", "skew", "zero_perc", "unique_perc", "missing_perc"]
+    numeric_cols = ["mean", "std", "min", "max", "skew", "zero_pct", "unique_pct", "missing_pct"]
     for stat in numeric_cols:
         if stat in summary_result.columns:
             values = summary_result[stat]
@@ -202,7 +202,7 @@ def test_all_nan_column():
     df = pd.DataFrame({"nan_col": [None, None, None]})
     result = summarize(df)
     assert result.loc["nan_col", "missing"] == 3
-    assert result.loc["nan_col", "missing_perc"] == 100.0
+    assert result.loc["nan_col", "missing_pct"] == 100.0
 
 # -------------------------
 # Test Series
@@ -240,7 +240,7 @@ def test_index_matches_timestamp_columns(df_timestamps):
 
 def test_expected_columns_present(df_timestamps):
     result = summarize_ts(df_timestamps)
-    expected = ["dtype", "min", "max", "range", "unique", "unique_perc", "missing", "missing_perc", "is_sorted"]
+    expected = ["dtype", "min", "max", "range", "unique", "unique_pct", "missing", "missing_pct", "is_sorted"]
     for col in expected:
         assert col in result.columns
 
@@ -306,13 +306,13 @@ def test_sorted_detection():
     assert summarize_ts(s_unsorted.to_frame(name="s"))['is_sorted'].iloc[0] == False
 
 # -------------------------
-# Percentage Toggle
+# pctentage Toggle
 # -------------------------
 
-def test_include_perc_false(df_timestamps):
-    result = summarize_ts(df_timestamps, include_perc=False)
-    assert "missing_perc" not in result.columns
-    assert "unique_perc" not in result.columns
+def test_include_pct_false(df_timestamps):
+    result = summarize_ts(df_timestamps, include_pct=False)
+    assert "missing_pct" not in result.columns
+    assert "unique_pct" not in result.columns
 
 # -------------------------
 # No Side Effects
@@ -390,16 +390,16 @@ def test_output_is_dataframe(df_missing):
 def test_expected_rows_present(df_missing):
     result = summarize_missing(df_missing)
     expected_rows = [
-        "n_rows", "n_cols", "rows_w_missing", "rows_w_missing_perc",
-        "cols_w_missing", "cols_w_missing_perc",
-        "tot_missing", "tot_missing_perc"
+        "row_count", "col_count", "rows_with_missing", "rows_with_missing_pct",
+        "cols_with_missing", "cols_with_missing_pct",
+        "missing_vals_total", "missing_vals_pct"
     ]
     for row in expected_rows:
         assert row in result.index
 
-def test_exclude_percentage_columns(df_missing):
-    result = summarize_missing(df_missing, include_perc=False)
-    excluded = ["rows_w_missing_perc", "cols_w_missing_perc", "tot_missing_perc"]
+def test_exclude_pctentage_columns(df_missing):
+    result = summarize_missing(df_missing, include_pct=False)
+    excluded = ["rows_with_missing_pct", "cols_with_missing_pct", "missing_vals_pct"]
     for row in excluded:
         assert row not in result.index
 
@@ -410,22 +410,22 @@ def test_exclude_percentage_columns(df_missing):
 
 def test_missing_counts_correct(df_missing):
     result = summarize_missing(df_missing)
-    assert result.loc["n_rows", "summary"] == 5
-    assert result.loc["n_cols", "summary"] == 4
-    assert result.loc["rows_w_missing", "summary"] == 5
-    assert result.loc["rows_w_missing_perc", "summary"] == 100.0
-    assert result.loc["cols_w_missing", "summary"] == 3
-    assert result.loc["cols_w_missing_perc", "summary"] == 75.0
-    assert result.loc["tot_missing", "summary"] == 8
-    assert result.loc["tot_missing_perc", "summary"] == 40.0
+    assert result.loc["row_count", "summary"] == 5
+    assert result.loc["col_count", "summary"] == 4
+    assert result.loc["rows_with_missing", "summary"] == 5
+    assert result.loc["rows_with_missing_pct", "summary"] == 100.0
+    assert result.loc["cols_with_missing", "summary"] == 3
+    assert result.loc["cols_with_missing_pct", "summary"] == 75.0
+    assert result.loc["missing_vals_total", "summary"] == 8
+    assert result.loc["missing_vals_pct", "summary"] == 40.0
 
 
 def test_no_missing_returns_zeroes(df_no_missing):
     result = summarize_missing(df_no_missing)
-    assert result.loc["rows_w_missing", "summary"] == 0
-    assert result.loc["cols_w_missing", "summary"] == 0
-    assert result.loc["tot_missing", "summary"] == 0
-    assert result.loc["tot_missing_perc", "summary"] == 0.0
+    assert result.loc["rows_with_missing", "summary"] == 0
+    assert result.loc["cols_with_missing", "summary"] == 0
+    assert result.loc["missing_vals_total", "summary"] == 0
+    assert result.loc["missing_vals_pct", "summary"] == 0.0
 
 
 # -------------------------

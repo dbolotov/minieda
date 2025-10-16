@@ -1,13 +1,13 @@
 import numpy as np
 import pandas as pd
 
-def summarize(data, include_perc=True, sort=True):
+def summarize(data, include_pct=True, sort=True):
     """
     Generate a summary DataFrame with descriptive statistics for a Pandas Series or DataFrame.
 
     Parameters:
         data (pd.Series or pd.DataFrame): Pandas Series or DataFrame.
-        include_perc (bool, default=True): Include percentage-based columns in the output.
+        include_pct (bool, default=True): Include pctentage-based columns in the output.
         sort (bool, default=True): Sort rows so that numeric columns appear first.
 
     Returns:
@@ -36,26 +36,26 @@ def summarize(data, include_perc=True, sort=True):
 
     # Add column-level summaries
     desc['missing'] = data.isnull().sum()
-    desc['missing_perc'] = (data.isnull().mean() * 100)
+    desc['missing_pct'] = (data.isnull().mean() * 100)
     desc['unique'] = data.nunique()
-    desc['unique_perc'] = (desc['unique'] / len(data) * 100)
+    desc['unique_pct'] = (desc['unique'] / len(data) * 100)
     desc['dtype'] = data.dtypes
     desc['zero'] = (data == 0).sum()
-    desc['zero_perc'] = ((data == 0).mean() * 100)
+    desc['zero_pct'] = ((data == 0).mean() * 100)
     desc['skew'] = data[non_bool_and_not_timedelta].skew()
 
     # Round numeric summary cols to 2 decimal places
     desc = desc.assign(**{
         col: pd.to_numeric(desc[col], errors='coerce').round(2)
         for col in ['mean', 'std', 'min', '50%', 'max',
-                    'missing_perc', 'unique_perc', 'skew', 'zero_perc']
+                    'missing_pct', 'unique_pct', 'skew', 'zero_pct']
         if col in desc.columns
     })
 
-    # Round zero percentage to 3 decimal places
+    # Round zero pctentage to 3 decimal places
     desc = desc.assign(**{
         col: pd.to_numeric(desc[col], errors='coerce').round(3)
-        for col in ['zero_perc']
+        for col in ['zero_pct']
         if col in desc.columns
     })
 
@@ -71,8 +71,8 @@ def summarize(data, include_perc=True, sort=True):
         desc['column_type'] = ['numeric' if pd.api.types.is_numeric_dtype(t) else 'categorical' for t in data.dtypes]
         desc = desc.sort_values(by='column_type', ascending=False)
     
-    if include_perc:
-        col_order = ['dtype', 'count', 'unique', 'unique_perc', 'missing', 'missing_perc', 'zero', 'zero_perc', 
+    if include_pct:
+        col_order = ['dtype', 'count', 'unique', 'unique_pct', 'missing', 'missing_pct', 'zero', 'zero_pct', 
                        'top', 'freq', 'mean', 'std', 'min', '50%', 'max', 'skew']
     else:
         col_order = ['dtype', 'count', 'unique', 'missing', 'zero', 
@@ -81,13 +81,13 @@ def summarize(data, include_perc=True, sort=True):
     return desc[final_columns]
 
 
-def summarize_ts(data, include_perc=True):
+def summarize_ts(data, include_pct=True):
     """
     Summarize timestamp columns in a Pandas Series or DataFrame.
 
     Parameters:
         data (pd.Series or pd.DataFrame): A datetime Series or a DataFrame containing one or more datetime columns.
-        include_perc (bool, default=True): Include percentage-based columns in the output.
+        include_pct (bool, default=True): Include pctentage-based columns in the output.
 
     Returns:
         pd.DataFrame: A summary table with one row per input column and one column per statistic.
@@ -127,13 +127,13 @@ def summarize_ts(data, include_perc=True):
             "unique": s.nunique()
         }
 
-        if include_perc:
-            row["unique_perc"] = round((s.nunique() / n_rows) * 100, 2)
+        if include_pct:
+            row["unique_pct"] = round((s.nunique() / n_rows) * 100, 2)
 
         row["missing"] = series.isna().sum()
 
-        if include_perc:
-            row["missing_perc"] = round((series.isna().mean()) * 100, 2)
+        if include_pct:
+            row["missing_pct"] = round((series.isna().mean()) * 100, 2)
 
         row["is_sorted"] = is_sorted
 
@@ -142,13 +142,14 @@ def summarize_ts(data, include_perc=True):
     df_result = pd.DataFrame.from_dict(dict(results), orient="index")
     return df_result.replace({np.nan: ""})
 
-def summarize_missing(data, include_perc=True):
+
+def summarize_missing(data, include_pct=True):
     """
     Summarize missing values in a Pandas DataFrame.
 
     Parameters:
         data (pd.DataFrame): The DataFrame to analyze.
-        include_perc (bool, default=True): Include percentage-based columns in the output.
+        include_pct (bool, default=True): Include pctentage-based columns in the output.
 
     Returns:
         pd.DataFrame: A one-column DataFrame with missing data stats.
@@ -159,26 +160,26 @@ def summarize_missing(data, include_perc=True):
     if data.shape[1] == 0 or data.empty:
         raise ValueError("summarize_missing() requires a non-empty DataFrame with at least one column.")
 
-    n_rows = len(data)
-    n_cols = data.shape[1]
+    row_count = len(data)
+    col_count = data.shape[1]
 
-    rows_w_missing = data.isnull().any(axis=1).sum()
-    cols_w_missing = data.isnull().any(axis=0).sum()
-    tot_missing = data.isnull().sum().sum()
+    rows_with_missing = data.isnull().any(axis=1).sum()
+    cols_with_missing = data.isnull().any(axis=0).sum()
+    missing_vals_total = data.isnull().sum().sum()
 
     # Prepare raw dictionary
     result = {
-        "n_rows": n_rows,
-        "n_cols": n_cols,
-        "rows_w_missing": rows_w_missing,
-        "cols_w_missing": cols_w_missing,
-        "tot_missing": tot_missing,
+        "row_count": row_count,
+        "col_count": col_count,
+        "rows_with_missing": rows_with_missing,
+        "cols_with_missing": cols_with_missing,
+        "missing_vals_total": missing_vals_total,
     }
-    if include_perc:
+    if include_pct:
         result.update({
-            "rows_w_missing_perc": round((rows_w_missing / n_rows) * 100, 2),
-            "cols_w_missing_perc": round((cols_w_missing / n_cols) * 100, 2),
-            "tot_missing_perc": round((tot_missing / (n_rows * n_cols)) * 100, 2),
+            "rows_with_missing_pct": round((rows_with_missing / row_count) * 100, 2),
+            "cols_with_missing_pct": round((cols_with_missing / col_count) * 100, 2),
+            "missing_vals_pct": round((missing_vals_total / (row_count * col_count)) * 100, 2),
         })
 
     # Build DataFrame
@@ -186,17 +187,17 @@ def summarize_missing(data, include_perc=True):
 
     # Define row order
     row_order = [
-        "n_rows",
-        "n_cols",
-        "rows_w_missing",
-        "rows_w_missing_perc" if include_perc else None,
-        "cols_w_missing",
-        "cols_w_missing_perc" if include_perc else None,
-        "tot_missing",
-        "tot_missing_perc" if include_perc else None,
+        "row_count",
+        "col_count",
+        "rows_with_missing",
+        "rows_with_missing_pct" if include_pct else None,
+        "cols_with_missing",
+        "cols_with_missing_pct" if include_pct else None,
+        "missing_vals_total",
+        "missing_vals_pct" if include_pct else None,
     ]
 
-    # Remove None entries if include_perc is False
+    # Remove None entries if include_pct is False
     row_order = [r for r in row_order if r is not None]
 
     result_series = pd.Series(result, name="summary").reindex(row_order)

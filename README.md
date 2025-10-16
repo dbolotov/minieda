@@ -1,12 +1,12 @@
 # minieda
 
-A minimalist Python package for exploratory data analysis with pandas. It currently contains two functions:
+A minimalist Python package for exploratory data analysis with pandas. It currently contains three functions:
 
-`summarize()`: an expanded version of pandas' `describe()`. Produces a table summary of a pandas Series or DataFrame, including data types, missing values, zero counts, uniqueness, distribution stats, and skew.
+- **`summarize()`**: an expanded version of pandas' `describe()`. Produces a table summary of a pandas Series or DataFrame, including data types, missing values, zero counts, uniqueness, distribution stats, and skew.
 
-`summarize_ts()`: summarizes one or more datetime columns in a pandas Series or DataFrame. Ignores non-timestamp columns. Includes min/max, range, missing values, uniqueness, and whether the data is sorted.
+- **`summarize_ts()`**: summarizes one or more datetime columns in a pandas Series or DataFrame. Ignores non-timestamp columns. Includes min/max, range, missing values, uniqueness, and whether the data is sorted.
 
-`summarize_missing()`: summarizes missing data in a Pandas DataFrame, including total counts and percentages.
+- **`summarize_missing()`**: summarizes missing data in a Pandas DataFrame by rows and columns, including total counts and percentages.
 
 ### Why use this?
 
@@ -34,13 +34,13 @@ df = pd.DataFrame({
     "var5": pd.Series(["low", "medium", "high", "low", "medium"], dtype="category"),
 })
 
-summary = summarize(df, include_perc=True, sort=True)
+summary = summarize(df, include_pct=True, sort=True)
 print(summary)
 ```
 
 Output:
 ```
-               dtype  count  unique  unique_perc  missing  missing_perc  zero  zero_perc   top freq  mean   std   min   50%   max  skew
+               dtype  count  unique  unique_pct  missing  missing_pct  zero  zero_pct   top freq  mean   std   min   50%   max  skew
 var1           int64      5       5        100.0        0           0.0     0        0.0             28.0  4.95  22.0  28.0  35.0  0.37
 var2            bool      5       2         40.0        0           0.0     2       40.0  True    3                                    
 var3          object      5       3         60.0        0           0.0     0        0.0     A    2                                    
@@ -68,7 +68,7 @@ print(summary)
 
 Output:
 ```
-              dtype        min        max               range  unique  unique_perc  missing  missing_perc  is_sorted
+              dtype        min        max               range  unique  unique_pct  missing  missing_pct  is_sorted
 ts1  datetime64[ns] 2023-01-01 2023-01-05     4 days 00:00:00       5        100.0        0           0.0       True
 ts2  datetime64[ns] 2020-01-04 2023-01-05  1097 days 00:00:00       4         80.0        1          20.0      False
 ```
@@ -95,15 +95,15 @@ print(result)
 
 Output:
 ```
-                     summary
-n_rows                   5.0
-n_cols                   4.0
-rows_w_missing           5.0
-rows_w_missing_perc    100.0
-cols_w_missing           3.0
-cols_w_missing_perc     75.0
-tot_missing              8.0
-tot_missing_perc        40.0
+                       summary
+row_count                  5.0
+col_count                  4.0
+rows_with_missing          5.0
+rows_with_missing_pct    100.0
+cols_with_missing          3.0
+cols_with_missing_pct     75.0
+missing_vals_total         8.0
+missing_vals_pct          40.0
 ```
 
 
