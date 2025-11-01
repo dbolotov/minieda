@@ -95,15 +95,13 @@ print(result)
 
 Output:
 ```
-                       summary
-row_count                  5.0
-col_count                  4.0
-rows_with_missing          5.0
-rows_with_missing_pct    100.0
-cols_with_missing          3.0
-cols_with_missing_pct     75.0
-missing_vals_total         8.0
-missing_vals_pct          40.0
+                    count    pct
+metric                          
+rows                    5       
+cols                    4       
+rows_with_missing       5  100.0
+cols_with_missing       3   75.0
+missing_vals_total      8   40.0
 ```
 
 

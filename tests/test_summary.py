@@ -384,48 +384,50 @@ def df_no_missing():
 def test_output_is_dataframe(df_missing):
     result = summarize_missing(df_missing)
     assert isinstance(result, pd.DataFrame)
-    assert result.shape[1] == 1  # single-column
+    assert result.shape == (5,2)  # two columns
     assert result.index.is_unique
 
 def test_expected_rows_present(df_missing):
     result = summarize_missing(df_missing)
     expected_rows = [
-        "row_count", "col_count", "rows_with_missing", "rows_with_missing_pct",
-        "cols_with_missing", "cols_with_missing_pct",
-        "missing_vals_total", "missing_vals_pct"
+        "rows", "cols", "rows_with_missing",
+        "cols_with_missing", "missing_vals_total"
     ]
     for row in expected_rows:
         assert row in result.index
-
-def test_exclude_pctentage_columns(df_missing):
-    result = summarize_missing(df_missing, include_pct=False)
-    excluded = ["rows_with_missing_pct", "cols_with_missing_pct", "missing_vals_pct"]
-    for row in excluded:
-        assert row not in result.index
-
 
 # -------------------------
 # Correctness Checks
 # -------------------------
 
-def test_missing_counts_correct(df_missing):
+def test_missing_counts_pct_correct(df_missing):
     result = summarize_missing(df_missing)
-    assert result.loc["row_count", "summary"] == 5
-    assert result.loc["col_count", "summary"] == 4
-    assert result.loc["rows_with_missing", "summary"] == 5
-    assert result.loc["rows_with_missing_pct", "summary"] == 100.0
-    assert result.loc["cols_with_missing", "summary"] == 3
-    assert result.loc["cols_with_missing_pct", "summary"] == 75.0
-    assert result.loc["missing_vals_total", "summary"] == 8
-    assert result.loc["missing_vals_pct", "summary"] == 40.0
+    assert result.loc["rows", "count"] == 5
+    assert result.loc["cols", "count"] == 4
+    assert result.loc["rows_with_missing", "count"] == 5
+    assert result.loc["cols_with_missing", "count"] == 3
+    assert result.loc["missing_vals_total", "count"] == 8
 
+    assert result.loc["rows_with_missing", "pct"] == 100.0
+    assert result.loc["cols_with_missing", "pct"] == 75.0
+    assert result.loc["missing_vals_total", "pct"] == 40.0
+
+
+def test_pct_column_blank_when_not_applicable(df_missing):
+    result = summarize_missing(df_missing)
+    assert result.loc["rows", "pct"] == ""
+    assert result.loc["cols", "pct"] == ""
 
 def test_no_missing_returns_zeroes(df_no_missing):
     result = summarize_missing(df_no_missing)
-    assert result.loc["rows_with_missing", "summary"] == 0
-    assert result.loc["cols_with_missing", "summary"] == 0
-    assert result.loc["missing_vals_total", "summary"] == 0
-    assert result.loc["missing_vals_pct", "summary"] == 0.0
+    assert result.loc["rows_with_missing", "count"] == 0
+    assert result.loc["cols_with_missing", "count"] == 0
+    assert result.loc["missing_vals_total", "count"] == 0
+
+    assert result.loc["rows_with_missing", "pct"] == 0.0
+    assert result.loc["cols_with_missing", "pct"] == 0.0
+    assert result.loc["missing_vals_total", "pct"] == 0.0
+
 
 
 # -------------------------

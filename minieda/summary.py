@@ -140,19 +140,19 @@ def summarize_ts(data, include_pct=True):
         results.append((col, row))
 
     df_result = pd.DataFrame.from_dict(dict(results), orient="index")
+    
     return df_result.replace({np.nan: ""})
 
 
-def summarize_missing(data, include_pct=True):
+def summarize_missing(data):
     """
     Summarize missing values in a Pandas DataFrame.
 
     Parameters:
         data (pd.DataFrame): The DataFrame to analyze.
-        include_pct (bool, default=True): Include pctentage-based columns in the output.
 
     Returns:
-        pd.DataFrame: A one-column DataFrame with missing data stats.
+        pd.DataFrame: A DataFrame with counts and percentages of the missing data.
     """
     if not isinstance(data, pd.DataFrame):
         raise TypeError("Input must be a pandas DataFrame.")
@@ -167,38 +167,23 @@ def summarize_missing(data, include_pct=True):
     cols_with_missing = data.isnull().any(axis=0).sum()
     missing_vals_total = data.isnull().sum().sum()
 
-    # Prepare raw dictionary
-    result = {
-        "row_count": row_count,
-        "col_count": col_count,
-        "rows_with_missing": rows_with_missing,
-        "cols_with_missing": cols_with_missing,
-        "missing_vals_total": missing_vals_total,
-    }
-    if include_pct:
-        result.update({
-            "rows_with_missing_pct": round((rows_with_missing / row_count) * 100, 2),
-            "cols_with_missing_pct": round((cols_with_missing / col_count) * 100, 2),
-            "missing_vals_pct": round((missing_vals_total / (row_count * col_count)) * 100, 2),
-        })
+    rows = []
 
-    # Build DataFrame
-    df = pd.DataFrame(result, index=[0])
+    rows.append({"metric": "rows", "count": row_count, "pct": None})
+    rows.append({"metric": "cols", "count": col_count, "pct": None})
 
-    # Define row order
-    row_order = [
-        "row_count",
-        "col_count",
-        "rows_with_missing",
-        "rows_with_missing_pct" if include_pct else None,
-        "cols_with_missing",
-        "cols_with_missing_pct" if include_pct else None,
-        "missing_vals_total",
-        "missing_vals_pct" if include_pct else None,
-    ]
+    rows.append({"metric": "rows_with_missing", "count": rows_with_missing,
+                 "pct": round((rows_with_missing / row_count) * 100, 2)})
 
-    # Remove None entries if include_pct is False
-    row_order = [r for r in row_order if r is not None]
+    rows.append({"metric": "cols_with_missing", "count": cols_with_missing,
+                 "pct": round((cols_with_missing / col_count) * 100, 2)})
 
-    result_series = pd.Series(result, name="summary").reindex(row_order)
-    return result_series.to_frame()
+    rows.append({"metric": "missing_vals_total", "count": missing_vals_total,
+                 "pct": round((missing_vals_total / (row_count * col_count)) * 100, 2)})
+
+
+    df_result = pd.DataFrame(rows).set_index("metric")
+
+    df_result = df_result.fillna("") # Replace "NaN" in the first two rows.
+
+    return(df_result)
