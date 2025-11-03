@@ -24,57 +24,37 @@ def df_test():
     })
 
 @pytest.fixture(scope="module")
-def summary_result(df_test):
+def result_df_test(df_test):
     return summarize(df_test)
-
-# # timestamp fixtures
-
-# @pytest.fixture
-# def df_timestamps():
-#     return pd.DataFrame({
-#         "ts1": pd.date_range("2023-01-01", periods=5, freq="D"),
-#         "ts2": pd.date_range("2023-01-01 00:00", periods=5, freq="min"),
-#         "var1": [1, 2, 3, 4, 5],  # Non-timestamp
-#         "var2": ["a", "b", "c", "d", "e"]
-#     })
-
-# @pytest.fixture
-# def ts_series():
-#     return pd.Series(pd.date_range("2023-01-01", periods=5, freq="D"), name="single_ts")
-
-
-# --------------------------------
-# summarize
-# --------------------------------
 
 # --------------------------------
 # Structure Tests
 # --------------------------------
 
-def test_output_is_dataframe(summary_result):
-    assert isinstance(summary_result, pd.DataFrame)
+def test_output_is_dataframe(result_df_test):
+    assert isinstance(result_df_test, pd.DataFrame)
 
-def test_rows_match_input_columns(summary_result, df_test):
-    assert summary_result.shape[0] == df_test.shape[1]
+def test_rows_match_input_columns(result_df_test, df_test):
+    assert result_df_test.shape[0] == df_test.shape[1]
 
-def test_index_matches_input_columns(summary_result, df_test):
-    assert set(summary_result.index) == set(df_test.columns)
+def test_index_matches_input_columns(result_df_test, df_test):
+    assert set(result_df_test.index) == set(df_test.columns)
 
-def test_expected_columns_present(summary_result):
+def test_expected_columns_present(result_df_test):
     expected_cols = [
         'dtype', 'count', 'unique', 'unique_pct', 'missing', 'missing_pct',
         'zero', 'zero_pct', 'mean', 'std', 'min', '50%', 'max', 'skew'
     ]
     for col in expected_cols:
-        assert col in summary_result.columns
+        assert col in result_df_test.columns
 
 # --------------------------------
 # Column-Specific Tests
 # --------------------------------
 
 # String columns
-def test_string_column_behavior(summary_result):
-    str_col = summary_result.loc["string_col1"]
+def test_string_column_behavior(result_df_test):
+    str_col = result_df_test.loc["string_col1"]
     assert str_col["dtype"] in ("object", "string")
     assert str_col["mean"] == ""
     assert str_col["std"] == ""
@@ -84,8 +64,8 @@ def test_string_column_behavior(summary_result):
     assert str_col["top"] == "apple"
 
 # Numeric column
-def test_numeric_column_behavior(summary_result):
-    num_col = summary_result.loc["int_col1"]
+def test_numeric_column_behavior(result_df_test):
+    num_col = result_df_test.loc["int_col1"]
     assert isinstance(num_col["mean"], float)
     assert isinstance(num_col["std"], float)
     assert num_col["zero"] == 0
@@ -93,27 +73,27 @@ def test_numeric_column_behavior(summary_result):
     assert isinstance(num_col["skew"], float)
 
 # Boolean column
-def test_boolean_column_behavior(summary_result):
-    bool_col = summary_result.loc["bool_col1"]
+def test_boolean_column_behavior(result_df_test):
+    bool_col = result_df_test.loc["bool_col1"]
     assert bool_col["dtype"] == "bool"
     assert bool_col["skew"] == ""
 
 # Timestamp column
-def test_timestamp_column_behavior(summary_result):
-    time_col = summary_result.loc["timestamp_col1"]
+def test_timestamp_column_behavior(result_df_test):
+    time_col = result_df_test.loc["timestamp_col1"]
     assert str(time_col["dtype"]).startswith("datetime64")
     assert time_col["mean"] == ""
     assert time_col["std"] == ""
 
 # Category column
-def test_category_column_behavior(summary_result):
-    cat_col = summary_result.loc["category_col"]
+def test_category_column_behavior(result_df_test):
+    cat_col = result_df_test.loc["category_col"]
     assert str(cat_col["dtype"]).startswith("category")
     assert cat_col["unique"] == 3
 
 # Timedelta column
-def test_timedelta_column_behavior(summary_result):
-    delta_col = summary_result.loc["timedelta_col"]
+def test_timedelta_column_behavior(result_df_test):
+    delta_col = result_df_test.loc["timedelta_col"]
     assert str(delta_col["dtype"]).startswith("timedelta64")
     assert delta_col["skew"] == ""
 
@@ -153,18 +133,18 @@ def test_no_sort_preserves_column_order(df_test):
 # Output Types
 # -------------------------------
 
-def test_numeric_output_types(summary_result):
+def test_numeric_output_types(result_df_test):
     numeric_cols = ["mean", "std", "min", "max", "skew", "zero_pct", "unique_pct", "missing_pct"]
     for stat in numeric_cols:
-        if stat in summary_result.columns:
-            values = summary_result[stat]
+        if stat in result_df_test.columns:
+            values = result_df_test[stat]
             for val in values:
                 if val != "":
                     assert isinstance(val, (float, int))
 
-def test_mean_is_rounded(summary_result):
-    if "mean" in summary_result.columns:
-        for val in summary_result["mean"]:
+def test_mean_is_rounded(result_df_test):
+    if "mean" in result_df_test.columns:
+        for val in result_df_test["mean"]:
             if isinstance(val, float):
                 rounded = round(val, 2)
                 assert abs(val - rounded) < 0.01
